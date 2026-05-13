@@ -24,7 +24,7 @@ class LocationInput(BaseModel):
 @app.post("/find-washroom")
 def find_washroom(location: LocationInput):
     conn=get_connection()
-    washrooms=conn.execute("SELECT*FROM washrooms").fetchall()
+    washrooms=conn.execute("SELECT * FROM washrooms").fetchall()
     conn.close()
     
     results=[]
@@ -44,4 +44,10 @@ def find_washroom(location: LocationInput):
 
     results.sort(key=lambda x: x["distance_km"])
     return results[:3]
-    
+
+@app.get("/washrooms")
+def all_washrooms():
+    conn=get_connection()
+    washrooms = [dict(row) for row in conn.execute("SELECT * FROM washrooms").fetchall()]
+    conn.close()
+    return washrooms
