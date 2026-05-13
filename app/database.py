@@ -8,10 +8,10 @@ def get_connection():
 def init_db():
     conn=get_connection()
     cursor=conn.cursor()
-
+    cursor.execute("DROP TABLE IF EXISTS washrooms")
     cursor.execute("""
                    
-        CREATE TABLE IF NOT EXISTS washrooms         
+        CREATE TABLE washrooms         
         (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
