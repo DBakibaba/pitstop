@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PitStop</title>
+</head>
+
+<body>
+    <h1>PitStop </h1>
+    <p>Find the nearest washroom while driving</p>
+    <button onclick="findWashroom()">Find Nearest Washroom</button>
+    <div id="results"> </div>
+</body>
+
+</html>
+
+<script>
+    async function findWashroom() {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            const response = await fetch("http://localhost:8000/find-washroom", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ latitude: lat, longitude: lon })
+            });
+            const data = await response.json();
+            displayResults(data);
+        });
+    }
+    function displayResults(washrooms) {
+        const div = document.getElementById("results");
+        div.innerHTML = washrooms.map(w => `
+        <div>
+           <h3>${w.name}</h3>
+                <p>${w.address}</p>
+                <p>${w.distance_km} km away</p>
+            </div>
+        `).join("");
+    }
+
+</script>
