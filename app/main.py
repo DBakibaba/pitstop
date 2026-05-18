@@ -51,3 +51,40 @@ def all_washrooms():
     washrooms = [dict(row) for row in conn.execute("SELECT * FROM washrooms").fetchall()]
     conn.close()
     return washrooms
+
+class WashroomInput(BaseModel):
+    name:str
+    latitude:float
+    longitude:float
+    address:str= None
+    is_open24h:bool=False
+    opening_time:str=None
+    closing_time:str=None
+    is_accessible:bool=False
+    comments:str=None
+
+
+
+@app.post("/washrooms")
+def add_washroom(washroom:WashroomInput):
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        INSERT INTO washrooms (name, latitude, longitude, address, is_open24h, opening_time, closing_time, is_accessible, comments)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        washroom.name,
+        washroom.latitude,
+        washroom.longitude,
+        washroom.address,
+        washroom.is_open24h,
+        washroom.opening_time,
+        washroom.closing_time,
+        washroom.is_accessible,
+        washroom.comments
+        
+    ))
+    conn.commit()
+    conn.close()
+    return {"message": "Washroom added successfully"}
