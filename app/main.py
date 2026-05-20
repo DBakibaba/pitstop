@@ -3,6 +3,9 @@ from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from distance import haversine
 from database import get_connection, init_db, seed_db
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
@@ -10,8 +13,19 @@ async def lifespan(app:FastAPI):
     seed_db()
     yield
 
-
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/app")
+def serve_frontend():
+    return FileResponse("/app/index.html")
 
 @app.get("/")
 def root():
@@ -83,7 +97,7 @@ def add_washroom(washroom:WashroomInput):
         washroom.closing_time,
         washroom.is_accessible,
         washroom.comments
-        
+
     ))
     conn.commit()
     conn.close()
