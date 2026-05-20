@@ -5,41 +5,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PitStop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #f5a623;
+            margin-bottom: 8px;
+        }
+
+        p {
+            color: #aaaaaa;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: #f5a623;
+            color: #000;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #e0951f;
+        }
+
+        #results {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid #f5a623;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+        }
+
+        .card p {
+            color: #aaaaaa;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .distance {
+            color: #f5a623;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>PitStop </h1>
-    <p>Find the nearest washroom while driving</p>
+    <h1> PitStop</h1>
+    <p>Find the nearest washroom while you drive</p>
     <button onclick="findWashroom()">Find Nearest Washroom</button>
-    <div id="results"> </div>
+    <div id="results"></div>
+
+    <script>
+        async function findWashroom() {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                const response = await fetch("http://localhost:8000/find-washroom", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ latitude: lat, longitude: lon })
+                });
+
+                const data = await response.json();
+                displayResults(data);
+            });
+        }
+
+        function displayResults(washrooms) {
+            const div = document.getElementById("results");
+            div.innerHTML = washrooms.map(w => `
+                <div class="card">
+                    <h3>${w.name}</h3>
+                    <p>${w.address}</p>
+                    <p class="distance">${w.distance_km} km away</p>
+                </div>
+            `).join("");
+        }
+    </script>
 </body>
 
 </html>
-
-<script>
-    async function findWashroom() {
-        navigator.geolocation.getCurrentPosition(async (position) => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-
-            const response = await fetch("http://localhost:8000/find-washroom", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ latitude: lat, longitude: lon })
-            });
-            const data = await response.json();
-            displayResults(data);
-        });
-    }
-    function displayResults(washrooms) {
-        const div = document.getElementById("results");
-        div.innerHTML = washrooms.map(w => `
-        <div>
-           <h3>${w.name}</h3>
-                <p>${w.address}</p>
-                <p>${w.distance_km} km away</p>
-            </div>
-        `).join("");
-    }
-
-</script>

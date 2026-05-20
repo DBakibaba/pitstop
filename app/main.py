@@ -102,3 +102,21 @@ def add_washroom(washroom:WashroomInput):
     conn.commit()
     conn.close()
     return {"message": "Washroom added successfully"}
+
+
+if __name__ == "__main__":
+    init_db()
+    
+    TORONTO_LAT = 43.7001
+    TORONTO_LON = -79.4163
+    
+    places = [
+        "Home Depot",
+        "Canadian Tire",
+        "Rona"
+    ]
+    
+    for place in places:
+        populate_places(place, TORONTO_LAT, TORONTO_LON)
+    
+    print("Done! Database populated.")
