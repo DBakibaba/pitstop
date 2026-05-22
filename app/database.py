@@ -1,20 +1,20 @@
 import sqlite3
 
 def get_connection():
-    conn=sqlite3.connect("washroom.db")
+    conn=sqlite3.connect("/data/washroom.db")
     conn.row_factory=sqlite3.Row
     return conn
 
 def init_db():
     conn=get_connection()
     cursor=conn.cursor()
-    cursor.execute("DROP TABLE IF EXISTS washrooms")
+  
     cursor.execute("""
                    
-        CREATE TABLE washrooms         
+        CREATE TABLE IF NOT EXISTS washrooms         
         (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             address TEXT,
@@ -22,8 +22,8 @@ def init_db():
             opening_time TEXT,
             closing_time TEXT,
             is_accessible BOOLEAN DEFAULT 0,
-            comments TEXT
-                  
+            comments TEXT,
+            UNIQUE(latitude, longitude)
          )                  
 """ )
     conn.commit()

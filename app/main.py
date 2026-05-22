@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from distance import haversine
-from database import get_connection, init_db, seed_db
+from database import get_connection, init_db
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 @asynccontextmanager
 async def lifespan(app:FastAPI):
     init_db()
-    seed_db()
+
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -104,19 +104,4 @@ def add_washroom(washroom:WashroomInput):
     return {"message": "Washroom added successfully"}
 
 
-if __name__ == "__main__":
-    init_db()
-    
-    TORONTO_LAT = 43.7001
-    TORONTO_LON = -79.4163
-    
-    places = [
-        "Home Depot",
-        "Canadian Tire",
-        "Rona"
-    ]
-    
-    for place in places:
-        populate_places(place, TORONTO_LAT, TORONTO_LON)
-    
-    print("Done! Database populated.")
+ 

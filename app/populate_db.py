@@ -64,7 +64,9 @@ if __name__ == "__main__":
             "Rona",
             "RONA +",
             "RONA+",
-            "rona+"
+            "rona+",
+            "Toronto Public Library",
+            "TPL"
         ]
         
         for place in places:
