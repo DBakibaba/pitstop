@@ -53,7 +53,9 @@ def find_washroom(location: LocationInput):
             "distance_km": round(dist, 2),
             "is_open24h": w["is_open24h"],
             "is_accessible": w["is_accessible"],
-            "comments": w["comments"]
+            "comments": w["comments"],
+            "latitude": w["latitude"],
+            "longitude": w["longitude"]
         })
 
     results.sort(key=lambda x: x["distance_km"])

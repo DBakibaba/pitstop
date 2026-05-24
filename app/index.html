@@ -111,9 +111,14 @@
                     <h3>${w.name}</h3>
                     <p>${w.address}</p>
                     <p class="distance">${w.distance_km} km away</p>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${w.latitude},${w.longitude}"
+                    target="_blank"
+                    >
+                    Navigate</a>
                 </div>
             `).join("");
         }
+
     </script>
 </body>
 
