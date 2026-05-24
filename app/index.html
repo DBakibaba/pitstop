@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PitStop</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * {
             margin: 0;
@@ -86,13 +88,24 @@
     <p>Find the nearest washroom while you drive</p>
     <button onclick="findWashroom()">Find Nearest Washroom</button>
     <div id="results"></div>
+    <div id="map" style="width:100%; max-width:500px; height:300px; border-radius:10px; margin-top:20px;"></div>
 
     <script>
+        const map = L.map('map').setView([43.7001, -79.4163], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
         async function findWashroom() {
             navigator.geolocation.getCurrentPosition(async (position) => {
                 const lat = position.coords.latitude;
                 const lon = position.coords.longitude;
-
+                L.circleMarker([lat, lon], {
+                    radius: 10,
+                    fillColor: "#FFF444",
+                    color: "#fff",
+                    fillOpacity: 1
+                }).bindPopup("You are here").addTo(map);
                 const response = await fetch("http://localhost:8000/find-washroom", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -109,7 +122,7 @@
             div.innerHTML = washrooms.map(w => `
                 <div class="card">
                     <h3>${w.name}</h3>
-                    <p>${w.address}</p>
+                    <p>${w.address || 'Address not available'}</p>
                     <p class="distance">${w.distance_km} km away</p>
                     <a href="https://www.google.com/maps/dir/?api=1&destination=${w.latitude},${w.longitude}"
                     target="_blank"
@@ -117,6 +130,24 @@
                     Navigate</a>
                 </div>
             `).join("");
+            // clear old markers
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker) map.removeLayer(layer);
+            });
+
+            // add user location marker
+            L.marker([washrooms[0].latitude, washrooms[0].longitude])
+                .addTo(map);
+
+            // add washroom pins
+            washrooms.forEach(w => {
+                L.marker([w.latitude, w.longitude])
+                    .bindPopup(`<b>${w.name}</b><br>${w.distance_km} km away`)
+                    .addTo(map);
+            });
+
+            // center map on first result
+            map.setView([washrooms[0].latitude, washrooms[0].longitude], 14);
         }
 
     </script>
