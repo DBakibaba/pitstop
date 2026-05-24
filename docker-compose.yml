@@ -6,4 +6,5 @@ services:
   volumes:
     - ./app:/app
     - ./data:/data
-    
+  environment:
+      - DATABASE_URL=postgresql://postgres:hfsPEyOyFZaCtZYYLQyeLvETbwkPnSsB@kodama.proxy.rlwy.net:59772/railway

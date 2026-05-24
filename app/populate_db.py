@@ -41,12 +41,15 @@ def populate_places(place_name, lat, lon):
         
         try:
             cursor.execute("""
-                INSERT OR IGNORE INTO washrooms (name, latitude, longitude, address, is_open24h, is_accessible, comments)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (name, place_lat, place_lon, address, 0, 1, f"Source: OpenStreetMap"))
+            INSERT INTO washrooms (name, latitude, longitude, address, is_open24h, is_accessible, comments)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (latitude, longitude) DO NOTHING
+        """, (name, place_lat, place_lon, address, False, True, "Source: OpenStreetMap"))
             count += 1
         except Exception as e:
-            print(f"Skipped: {e}")
+            conn.rollback()
+            print(f"Skipped: {type(e).__name__}: {e}")
+            break  # stop after first error so we can read it
     
     conn.commit()
     conn.close()
@@ -85,13 +88,16 @@ def populate_by_amenity(amenity_type, label, lat, lon):
         
         try:
             cursor.execute("""
-                INSERT OR IGNORE INTO washrooms (name, latitude, longitude, address, is_open24h, is_accessible, comments)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (name, place_lat, place_lon, address, 0, 1, f"Source: OpenStreetMap"))
+                INSERT INTO washrooms (name, latitude, longitude, address, is_open24h, is_accessible, comments)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (latitude, longitude) DO NOTHING
+            """, (name, place_lat, place_lon, address, False, True, "Source: OpenStreetMap"))
             count += 1
         except Exception as e:
-            print(f"Skipped: {e}")
-    
+            conn.rollback()
+            print(f"Skipped: {type(e).__name__}: {e}")
+            break
+            
     conn.commit()
     conn.close()
     print(f"Added {count} {label} locations")

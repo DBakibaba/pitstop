@@ -1,8 +1,11 @@
-import sqlite3
+import os
+import psycopg
+
+
 
 def get_connection():
-    conn=sqlite3.connect("/data/washroom.db")
-    conn.row_factory=sqlite3.Row
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    conn = psycopg.connect(DATABASE_URL)
     return conn
 
 def init_db():
@@ -13,15 +16,15 @@ def init_db():
                    
         CREATE TABLE IF NOT EXISTS washrooms         
         (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             address TEXT,
-            is_open24h BOOLEAN DEFAULT 0,
+            is_open24h BOOLEAN DEFAULT FALSE,
             opening_time TEXT,
             closing_time TEXT,
-            is_accessible BOOLEAN DEFAULT 0,
+            is_accessible BOOLEAN DEFAULT FALSE,
             comments TEXT,
             UNIQUE(latitude, longitude)
          )                  

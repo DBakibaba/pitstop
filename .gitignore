@@ -5,6 +5,7 @@ __pycache__/
 
 *.db
 /data
+docker-compose.yml
 # C extensions
 *.so
 

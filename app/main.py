@@ -37,8 +37,11 @@ class LocationInput(BaseModel):
 
 @app.post("/find-washroom")
 def find_washroom(location: LocationInput):
-    conn=get_connection()
-    washrooms=conn.execute("SELECT * FROM washrooms").fetchall()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM washrooms")
+    columns = [desc[0] for desc in cursor.description]
+    washrooms = [dict(zip(columns, row)) for row in cursor.fetchall()]
     conn.close()
     
     results=[]
@@ -63,8 +66,11 @@ def find_washroom(location: LocationInput):
 
 @app.get("/washrooms")
 def all_washrooms():
-    conn=get_connection()
-    washrooms = [dict(row) for row in conn.execute("SELECT * FROM washrooms").fetchall()]
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM washrooms")
+    columns = [desc[0] for desc in cursor.description]
+    washrooms = [dict(zip(columns, row)) for row in cursor.fetchall()]
     conn.close()
     return washrooms
 
@@ -88,7 +94,7 @@ def add_washroom(washroom:WashroomInput):
     
     cursor.execute("""
         INSERT INTO washrooms (name, latitude, longitude, address, is_open24h, opening_time, closing_time, is_accessible, comments)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
         washroom.name,
         washroom.latitude,
