@@ -106,7 +106,7 @@
                     color: "#fff",
                     fillOpacity: 1
                 }).bindPopup("You are here").addTo(map);
-                const response = await fetch("http://localhost:8000/find-washroom", {
+                const response = await fetch("/find-washroom", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ latitude: lat, longitude: lon })
