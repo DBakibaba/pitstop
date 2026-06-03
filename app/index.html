@@ -100,20 +100,21 @@
             navigator.geolocation.getCurrentPosition(async (position) => {
                 const lat = position.coords.latitude;
                 const lon = position.coords.longitude;
-                L.circleMarker([lat, lon], {
-                    radius: 10,
-                    fillColor: "#FFF444",
-                    color: "#fff",
-                    fillOpacity: 1
-                }).bindPopup("You are here").addTo(map);
-                const response = await fetch("/find-washroom", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ latitude: lat, longitude: lon })
-                });
 
-                const data = await response.json();
-                displayResults(data);
+                try {
+                    const response = await fetch("/find-washroom", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ latitude: lat, longitude: lon })
+                    });
+
+                    const data = await response.json();
+                    displayResults(data);
+                } catch (error) {
+                    document.getElementById("results").innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+                }
+            }, (error) => {
+                document.getElementById("results").innerHTML = `<p style="color:red">Location error: ${error.message}</p>`;
             });
         }
 
