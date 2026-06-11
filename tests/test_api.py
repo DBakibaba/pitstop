@@ -1,7 +1,9 @@
 from fastapi.testclient import TestClient
+
+ 
 from main import app
 
-
+ 
 client=TestClient(app)
 
 def test_root_status_code():
@@ -58,3 +60,28 @@ def test_find_washroom_invalid_latitude():
     assert response.status_code == 422
 
     response=client.post("/find-washroom")
+
+def test_add_washroom_success():
+    response=client.post(
+    "/washrooms",
+    json={
+    "name":"Dodo test wc",
+    "latitude": 43.5000,
+    "longitude": -79.4000
+    }
+    )
+    assert response.status_code==200
+    assert response.json()=={
+        "message":"Washroom added successfully"
+    }
+def test_add_dublicated_washroom_success():
+    response=client.post(
+    "/washrooms",
+    json={
+    "name":"Dodo test wc",
+    "latitude": 43.7000,
+    "longitude": -79.4000
+    }
+    )
+    assert response.status_code==409
+    

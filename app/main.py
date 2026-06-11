@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException,status
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from distance import haversine
@@ -6,6 +6,8 @@ from database import get_connection, init_db
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from psycopg.errors import UniqueViolation
+
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
@@ -91,25 +93,30 @@ class WashroomInput(BaseModel):
 def add_washroom(washroom:WashroomInput):
     conn = get_connection()
     cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO washrooms (name, latitude, longitude, address, is_open24h, opening_time, closing_time, is_accessible, comments)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            washroom.name,
+            washroom.latitude,
+            washroom.longitude,
+            washroom.address,
+            washroom.is_open24h,
+            washroom.opening_time,
+            washroom.closing_time,
+            washroom.is_accessible,
+            washroom.comments
+
+        ))
+        conn.commit()
+        conn.close()
+        return {"message": "Washroom added successfully"}
     
-    cursor.execute("""
-        INSERT INTO washrooms (name, latitude, longitude, address, is_open24h, opening_time, closing_time, is_accessible, comments)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, (
-        washroom.name,
-        washroom.latitude,
-        washroom.longitude,
-        washroom.address,
-        washroom.is_open24h,
-        washroom.opening_time,
-        washroom.closing_time,
-        washroom.is_accessible,
-        washroom.comments
-
-    ))
-    conn.commit()
-    conn.close()
-    return {"message": "Washroom added successfully"}
-
+    except UniqueViolation:
+        raise HTTPException (
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Location already exist in database"
+        )
 
  
