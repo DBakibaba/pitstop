@@ -66,7 +66,7 @@ def test_add_washroom_success():
     "/washrooms",
     json={
     "name":"Dodo test wc",
-    "latitude": 43.5000,
+    "latitude": 43.5020,
     "longitude": -79.4000
     }
     )
@@ -84,4 +84,6 @@ def test_add_dublicated_washroom_success():
     }
     )
     assert response.status_code==409
-    
+    assert response.json()=={
+        "detail":"Location already exist in database"
+    }

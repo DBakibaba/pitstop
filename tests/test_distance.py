@@ -1,4 +1,4 @@
-from app.distance import haversine
+from distance import haversine
 
 def test_same_location():
     result=haversine(
