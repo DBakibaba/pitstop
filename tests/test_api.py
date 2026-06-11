@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from app.main import app
+from main import app
 
 
 client=TestClient(app)
@@ -56,3 +56,5 @@ def test_find_washroom_invalid_latitude():
     )
 
     assert response.status_code == 422
+
+    response=client.post("/find-washroom")
