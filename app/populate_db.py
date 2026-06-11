@@ -1,5 +1,13 @@
+import time
+
+from dotenv import load_dotenv
+load_dotenv()
+
 import requests
 from database import get_connection, init_db
+import json
+
+ 
 
 def fetch_places(place_name, lat, lon, radius=20000):
     query = f"""
@@ -16,6 +24,7 @@ def fetch_places(place_name, lat, lon, radius=20000):
         params={"data": query},
         headers={"User-Agent": "PitStop/1.0"}
     )
+    time.sleep(1)
     
     print("status:", response.status_code)
     return response.json()["elements"]
@@ -54,6 +63,9 @@ def populate_places(place_name, lat, lon):
     conn.commit()
     conn.close()
     print(f"Added {count} locations for {place_name}")
+
+
+
 
 def fetch_by_amenity(amenity_type, lat, lon, radius=20000):
     query = f'[out:json][timeout:25];(node["amenity"="{amenity_type}"](around:{radius},{lat},{lon});way["amenity"="{amenity_type}"](around:{radius},{lat},{lon}););out center;'
@@ -101,6 +113,40 @@ def populate_by_amenity(amenity_type, label, lat, lon):
     conn.commit()
     conn.close()
     print(f"Added {count} {label} locations")
+def populate_toronto_washrooms():
+    print("Fetching Toronto Open Data washrooms...")
+    conn=get_connection()
+    cursor=conn.cursor()
+    base_url = "https://ckan0.cf.opendata.inter.prod-toronto.ca"
+    resource_id = "1c7d1063-2562-4de3-8cd3-4cef48419f6f"
+    limit=100
+    offset=0
+    count=0
+    url = base_url + "/api/3/action/datastore_search"
+    while True:
+        params={
+            "id":resource_id,
+            "limit":limit,
+            "offset":offset
+        }
+
+        response=requests.get(url,params=params)
+        data=response.json()
+
+        records=data["result"]["records"]
+        if not records:
+            break
+        print(f"Fetched {len(records)} records from offset {offset}")
+
+        # For now, just inspect the first record
+         
+        offset += limit
+        
+
+        
+
+    print("Done")
+
 
 if __name__ == "__main__":
     init_db()
@@ -122,4 +168,8 @@ if __name__ == "__main__":
     populate_by_amenity("library", "Library", TORONTO_LAT, TORONTO_LON)
     populate_by_amenity("community_centre", "Community Centre", TORONTO_LAT, TORONTO_LON)
     
+    
+
+    populate_toronto_washrooms()
+
     print("Done! Database populated.")
