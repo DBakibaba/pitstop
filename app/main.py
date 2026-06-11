@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
-from distance import haversine
-from database import get_connection, init_db
+from app.distance import haversine
+from app.database import get_connection, init_db
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,7 +14,7 @@ async def lifespan(app:FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
-
+#single responsibilty rule
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,7 +29,7 @@ def serve_frontend():
 
 @app.get("/")
 def root():
-    return {"message":"Pitstop API is running "}
+    return {"message":"Pitstop API is running"}
 
 class LocationInput(BaseModel):
     latitude:float
