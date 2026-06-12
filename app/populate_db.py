@@ -115,61 +115,77 @@ def populate_by_amenity(amenity_type, label, lat, lon):
     print(f"Added {count} {label} locations")
 def populate_toronto_washrooms():
     print("Fetching Toronto Open Data washrooms...")
-    conn=get_connection()
-    cursor=conn.cursor()
     base_url = "https://ckan0.cf.opendata.inter.prod-toronto.ca"
     resource_id = "1c7d1063-2562-4de3-8cd3-4cef48419f6f"
-    limit=100
-    offset=0
-    count=0
     url = base_url + "/api/3/action/datastore_search"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    limit = 100
+    offset = 0
+    count = 0
+
     while True:
-        params={
-            "id":resource_id,
-            "limit":limit,
-            "offset":offset
-        }
+        params = {"id": resource_id, "limit": limit, "offset": offset}
+        response = requests.get(url, params=params)
+        data = response.json()
+        records = data["result"]["records"]
 
-        response=requests.get(url,params=params)
-        data=response.json()
-
-        records=data["result"]["records"]
         if not records:
             break
-        print(f"Fetched {len(records)} records from offset {offset}")
 
-        # For now, just inspect the first record
-         
+        for record in records:
+            name = record["location"]
+            address = record["address"]
+            geometry_string = record["geometry"]
+            geometry = json.loads(geometry_string)
+            longitude = geometry["coordinates"][0]
+            latitude = geometry["coordinates"][1]
+
+            hours = record.get("hours", "")
+            is_open24h = True if hours and "24" in hours.lower() else False
+            is_accessible = True if record.get("accessible") else False
+
+            try:
+                cursor.execute("""
+                    INSERT INTO washrooms (name, latitude, longitude, address, is_open24h, is_accessible, comments)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (latitude, longitude) DO NOTHING
+                """, (name, latitude, longitude, address, is_open24h, is_accessible, "Source: Toronto Open Data"))
+                count += 1
+            except Exception as e:
+                conn.rollback()
+                print(f"Skipped: {e}")
+
         offset += limit
-        
 
-        
-
-    print("Done")
+    conn.commit()
+    conn.close()
+    print(f"Imported {count} Toronto washrooms")
 
 
 if __name__ == "__main__":
     init_db()
-    
-    TORONTO_LAT = 43.7001
-    TORONTO_LON = -79.4163
-    
-    places = [
-        "The Home Depot",
-        "Canadian Tire",
-        "Rona",
-        "Loblaws",
-        "FreshCo",
-    ]
-    
-    for place in places:
-        populate_places(place, TORONTO_LAT, TORONTO_LON)
-    
-    populate_by_amenity("library", "Library", TORONTO_LAT, TORONTO_LON)
-    populate_by_amenity("community_centre", "Community Centre", TORONTO_LAT, TORONTO_LON)
-    
-    
-
     populate_toronto_washrooms()
+    
+    # TORONTO_LAT = 43.7001
+    # TORONTO_LON = -79.4163
+    
+    # places = [
+    #     "The Home Depot",
+    #     "Canadian Tire",
+    #     "Rona",
+    #     "Loblaws",
+    #     "FreshCo",
+    # ]
+    
+    # for place in places:
+    #     populate_places(place, TORONTO_LAT, TORONTO_LON)
+    
+    # populate_by_amenity("library", "Library", TORONTO_LAT, TORONTO_LON)
+    # populate_by_amenity("community_centre", "Community Centre", TORONTO_LAT, TORONTO_LON)
+    
+    
 
     print("Done! Database populated.")

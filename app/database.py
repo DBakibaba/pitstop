@@ -1,8 +1,6 @@
 import os
 import psycopg
 
-
-
 def get_connection():
     DATABASE_URL = os.getenv("DATABASE_URL")
     conn = psycopg.connect(DATABASE_URL)
@@ -51,3 +49,5 @@ def seed_db():
     
     conn.commit()
     conn.close()
+
+    
