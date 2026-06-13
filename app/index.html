@@ -125,6 +125,7 @@
                     <h3>${w.name}</h3>
                     <p>${w.address || 'Address not available'}</p>
                     <p class="distance">${w.distance_km} km away</p>
+                    <p>${w.comments && w.comments.includes('Hours:') ? w.comments.split('Hours:')[1] : w.is_open24h ? 'Open 24h' : ''}</p>
                     <a href="https://www.google.com/maps/dir/?api=1&destination=${w.latitude},${w.longitude}"
                     target="_blank"
                     >
