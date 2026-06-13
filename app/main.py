@@ -41,11 +41,22 @@ class LocationInput(BaseModel):
 def find_washroom(location: LocationInput):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM washrooms")
+    lat=location.latitude
+    lon=location.longitude
+    radius=0.045 
+    cursor.execute("""
+    SELECT * FROM washrooms
+    WHERE latitude BETWEEN %s AND %s
+    AND longitude BETWEEN %s AND %s
+""", (lat - radius, lat + radius, lon - radius * 1.5, lon + radius * 1.5))
+    
     columns = [desc[0] for desc in cursor.description]
     washrooms = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    print(f"Fetched {len(washrooms)} washrooms in bounding box")
+
     conn.close()
     
+   
     results=[]
     for w in washrooms:
         dist=haversine(location.latitude,location.longitude,
@@ -119,4 +130,3 @@ def add_washroom(washroom:WashroomInput):
             detail="Location already exist in database"
         )
 
- 
