@@ -144,6 +144,9 @@ def populate_toronto_washrooms():
             latitude = geometry["coordinates"][1]
 
             hours = record.get("hours", "")
+            comments=f"Source: Toronto Open Data"
+            if hours:
+                comments=f"Source: Toronto Open Data | Hours:{hours}"
             is_open24h = True if hours and "24" in hours.lower() else False
             is_accessible = True if record.get("accessible") else False
 
@@ -151,8 +154,9 @@ def populate_toronto_washrooms():
                 cursor.execute("""
                     INSERT INTO washrooms (name, latitude, longitude, address, is_open24h, is_accessible, comments)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (latitude, longitude) DO NOTHING
-                """, (name, latitude, longitude, address, is_open24h, is_accessible, "Source: Toronto Open Data"))
+                    ON CONFLICT (latitude, longitude) DO UPDATE
+                               SET comments=EXCLUDED.comments
+                """, (name, latitude, longitude, address, is_open24h, is_accessible,comments))
                 count += 1
             except Exception as e:
                 conn.rollback()
