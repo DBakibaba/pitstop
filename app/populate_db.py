@@ -1,4 +1,5 @@
 import time
+import re
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -7,7 +8,41 @@ import requests
 from database import get_connection, init_db
 import json
 
- 
+def parse_hours(hours_string):
+    if not hours_string:
+        return (None, None)
+
+    text = hours_string.lower().strip()
+
+    if "24" in text and "hour" in text:
+        return (0, 24)
+
+    pattern = r'(\d{1,2})(?::\d{2})?\s*(a\.?\s*m\.?|p\.?\s*m\.?)'
+    matches = re.findall(pattern, text)
+
+    if len(matches) < 2:
+        return (None, None)
+
+    def convert_to_24_hour(hour, period):
+        hour = int(hour)
+        period = period.replace(".", "").replace(" ", "")
+
+        if period == "am":
+            if hour == 12:
+                return 0
+            return hour
+
+        if period == "pm":
+            if hour == 12:
+                return 12
+            return hour + 12
+
+        return None
+
+    opening_hour = convert_to_24_hour(matches[0][0], matches[0][1])
+    closing_hour = convert_to_24_hour(matches[1][0], matches[1][1])
+
+    return (opening_hour, closing_hour)
 
 def fetch_places(place_name, lat, lon, radius=20000):
     query = f"""
@@ -144,6 +179,7 @@ def populate_toronto_washrooms():
             latitude = geometry["coordinates"][1]
 
             hours = record.get("hours", "")
+            opening_time,closing_time=parse_hours(hours)
             comments=f"Source: Toronto Open Data"
             if hours:
                 comments=f"Source: Toronto Open Data | Hours:{hours}"
@@ -152,11 +188,13 @@ def populate_toronto_washrooms():
 
             try:
                 cursor.execute("""
-                    INSERT INTO washrooms (name, latitude, longitude, address, is_open24h, is_accessible, comments)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO washrooms (name, latitude, longitude, address, is_open24h,opening_time,closing_time, is_accessible, comments)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s)
                     ON CONFLICT (latitude, longitude) DO UPDATE
-                               SET comments=EXCLUDED.comments
-                """, (name, latitude, longitude, address, is_open24h, is_accessible,comments))
+                               SET comments=EXCLUDED.comments,
+                               opening_time=EXCLUDED.opening_time,
+                               closing_time=EXCLUDED.closing_time
+                """, (name, latitude, longitude, address, is_open24h,opening_time,closing_time,is_accessible,comments))
                 count += 1
             except Exception as e:
                 conn.rollback()

@@ -20,8 +20,8 @@ def init_db():
             longitude REAL NOT NULL,
             address TEXT,
             is_open24h BOOLEAN DEFAULT FALSE,
-            opening_time TEXT,
-            closing_time TEXT,
+            opening_time INTEGER,
+            closing_time INTEGER,
             is_accessible BOOLEAN DEFAULT FALSE,
             comments TEXT,
             UNIQUE(latitude, longitude)
