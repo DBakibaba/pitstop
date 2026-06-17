@@ -52,7 +52,7 @@ def find_washroom(location: LocationInput):
     
     columns = [desc[0] for desc in cursor.description]
     washrooms = [dict(zip(columns, row)) for row in cursor.fetchall()]
-    print(f"Fetched {len(washrooms)} washrooms in bounding box")
+    # print(f"Fetched {len(washrooms)} washrooms in bounding box")
 
     conn.close()
     
@@ -71,7 +71,9 @@ def find_washroom(location: LocationInput):
             "is_accessible": w["is_accessible"],
             "comments": w["comments"],
             "latitude": w["latitude"],
-            "longitude": w["longitude"]
+            "longitude": w["longitude"],
+            "opening_time":w["opening_time"],
+            "closing_time":w["closing_time"]
         })
 
     results.sort(key=lambda x: x["distance_km"])

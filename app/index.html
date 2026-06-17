@@ -134,38 +134,50 @@
             });
         }
 
+
         function displayResults(washrooms, userLat, userLon) {
+            const currentHour = new Date().getHours();
+
+            const openWashrooms = washrooms.filter(w => {
+                if (w.is_open24h) return true;
+                if (w.opening_time !== null && w.closing_time !== null) {
+                    return currentHour >= w.opening_time && currentHour < w.closing_time;
+                }
+                return true; // unknown hours — show anyway
+            });
+
+            if (openWashrooms.length === 0) {
+                document.getElementById("results").innerHTML = `<p style="color:#aaa">No open washrooms found nearby right now.</p>`;
+                return;
+            }
+
             const div = document.getElementById("results");
-            div.innerHTML = washrooms.map(w => `
-                <div class="card">
-                    <h3>${w.name}</h3>
-                    <p>${w.address || 'Address not available'}</p>
-                    <p class="distance">${w.distance_km} km away</p>
-                    <p>${w.comments && w.comments.includes('Hours:') ? w.comments.split('Hours:')[1] : w.is_open24h ? 'Open 24h' : ''}</p>
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=${w.latitude},${w.longitude}"
-                    target="_blank"
-                    >
-                    Navigate</a>
-                </div>
-            `).join("");
-            // clear old markers
+            div.innerHTML = openWashrooms.map(w => `
+        <div class="card">
+            <h3>${w.name}</h3>
+            <p>${w.address || 'Address not available'}</p>
+            <p class="distance">${w.distance_km} km away</p>
+            <p>${w.comments && w.comments.includes('Hours:') ? w.comments.split('Hours:')[1] : w.is_open24h ? 'Open 24h' : ''}</p>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${w.latitude},${w.longitude}"
+            target="_blank">Navigate</a>
+        </div>
+    `).join("");
+
             map.eachLayer(layer => {
                 if (layer instanceof L.Marker) map.removeLayer(layer);
             });
 
-            // add user location marker
-            L.marker([userLat, userLon], { icon: userIcon }).bindPopup("You are here")
-                .addTo(map);
+            L.marker([userLat, userLon], { icon: userIcon }).bindPopup("You are here").addTo(map);
 
-            // add washroom pins
-            washrooms.forEach(w => {
+            openWashrooms.forEach(w => {
                 L.marker([w.latitude, w.longitude])
                     .bindPopup(`<b>${w.name}</b><br>${w.distance_km} km away`)
                     .addTo(map);
             });
 
-            // center map on first result
-            map.setView([washrooms[0].latitude, washrooms[0].longitude], 14);
+            if (openWashrooms.length > 0) {
+                map.setView([openWashrooms[0].latitude, openWashrooms[0].longitude], 14);
+            }
         }
 
     </script>
